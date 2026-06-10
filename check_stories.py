@@ -30,7 +30,7 @@ def fetch_stories():
     run_url  = f"https://api.apify.com/v2/actors/{actor_id}/runs?token={APIFY_TOKEN}"
 
     print(f"Starting Apify actor for @{CINEMA_ACCOUNT}...")
-    run = requests.post(run_url, json={"usernames": [CINEMA_ACCOUNT]}).json()
+    run = requests.post(run_url, json={"username": [CINEMA_ACCOUNT]}).json()
 
     run_id = run.get("data", {}).get("id")
     if not run_id:
