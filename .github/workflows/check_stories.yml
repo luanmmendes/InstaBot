@@ -16,7 +16,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install instaloader requests
+        run: pip install requests
 
       - name: Run script
         run: python check_stories.py
@@ -24,6 +24,7 @@ jobs:
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CINEMA_ACCOUNT:   ${{ secrets.CINEMA_ACCOUNT }}
+          APIFY_TOKEN:      ${{ secrets.APIFY_TOKEN }}
 
       - name: Save already_sent.json back to repo
         run: |
