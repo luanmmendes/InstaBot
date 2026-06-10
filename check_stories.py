@@ -4,12 +4,23 @@ import json
 import time
 from pathlib import Path
 from datetime import datetime, timezone
+from dotenv import load_dotenv
 
-# ── credentials from GitHub Secrets ──────────────────────────────────────────
-TELEGRAM_TOKEN   = os.environ["TELEGRAM_TOKEN"]
-TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
-CINEMA_ACCOUNT   = os.environ["CINEMA_ACCOUNT"]
-APIFY_TOKEN      = os.environ["APIFY_TOKEN"]
+# Load local environment variables from .env file if it exists
+load_dotenv()
+
+# ── credentials from environment ──────────────────────────────────────────────
+TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+CINEMA_ACCOUNT   = os.getenv("CINEMA_ACCOUNT")
+APIFY_TOKEN      = os.getenv("APIFY_TOKEN")
+
+# Validate credentials
+missing_vars = [var for var in ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID", "CINEMA_ACCOUNT", "APIFY_TOKEN"] if not globals()[var]]
+if missing_vars:
+    print(f"Error: Missing environment variables: {', '.join(missing_vars)}")
+    print("Please set them in your environment or a .env file.")
+    exit(1)
 
 # ── file that remembers which stories were already sent ───────────────────────
 SENT_IDS_FILE = "already_sent.json"
@@ -30,7 +41,7 @@ def fetch_stories():
     run_url  = f"https://api.apify.com/v2/actors/{actor_id}/runs?token={APIFY_TOKEN}"
 
     print(f"Starting Apify actor for @{CINEMA_ACCOUNT}...")
-    run = requests.post(run_url, json={"username": [CINEMA_ACCOUNT]}).json()
+    run = requests.post(run_url, json={"usernames": [CINEMA_ACCOUNT]}).json()
 
     run_id = run.get("data", {}).get("id")
     if not run_id:

@@ -1,2 +1,2 @@
-instaloader
 requests
+python-dotenv
