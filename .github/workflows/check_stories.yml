@@ -24,6 +24,8 @@ jobs:
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CINEMA_ACCOUNT:   ${{ secrets.CINEMA_ACCOUNT }}
+          IG_USERNAME:      ${{ secrets.IG_USERNAME }}
+          IG_PASSWORD:      ${{ secrets.IG_PASSWORD }}
 
       - name: Save already_sent.json back to repo
         run: |

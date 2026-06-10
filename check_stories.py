@@ -6,9 +6,11 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 # ── credentials from GitHub Secrets ──────────────────────────────────────────
-TELEGRAM_TOKEN   = os.environ["TELEGRAM_TOKEN"]
+TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
-CINEMA_ACCOUNT   = os.environ["CINEMA_ACCOUNT"]   # e.g. "cinemaxyz"
+CINEMA_ACCOUNT = os.environ["CINEMA_ACCOUNT"]
+IG_USERNAME = os.environ["IG_USERNAME"]
+IG_PASSWORD = os.environ["IG_PASSWORD"]
 
 # ── file that remembers which stories were already sent ───────────────────────
 SENT_IDS_FILE = "already_sent.json"
@@ -46,7 +48,7 @@ def send_video(video_path, caption=""):
 # ── main logic ────────────────────────────────────────────────────────────────
 def main():
     sent_ids = load_sent_ids()
-    new_ids  = set()
+    new_ids = set()
 
     L = instaloader.Instaloader(
         download_video_thumbnails=False,
@@ -55,7 +57,16 @@ def main():
     )
 
     try:
+        print(f"Logging in as {IG_USERNAME}...")
+        L.login(IG_USERNAME, IG_PASSWORD)
+        print("Login successful ✅")
+    except Exception as e:
+        print(f"Login failed: {e}")
+        return
+
+    try:
         profile = instaloader.Profile.from_username(L.context, CINEMA_ACCOUNT)
+        print(f"Profile found: {profile.username} ✅")
     except Exception as e:
         print(f"Could not load profile '{CINEMA_ACCOUNT}': {e}")
         return
@@ -70,12 +81,10 @@ def main():
                 print(f"Already sent: {story_id}, skipping.")
                 continue
 
-            # download the story item into a local folder
             folder = Path("stories")
             folder.mkdir(exist_ok=True)
             L.download_storyitem(item, target=folder)
 
-            # find the downloaded file (image or video)
             files = sorted(folder.iterdir(), key=lambda f: f.stat().st_mtime, reverse=True)
             media_file = next((f for f in files if f.suffix in [".jpg", ".mp4", ".webp"]), None)
 
@@ -98,7 +107,6 @@ def main():
             else:
                 print(f"Failed to send story {story_id} ❌")
 
-    # save updated sent IDs
     save_sent_ids(sent_ids | new_ids)
     print(f"Done. {len(new_ids)} new stories sent.")
 
