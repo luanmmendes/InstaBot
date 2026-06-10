@@ -26,8 +26,8 @@ def save_sent_ids(ids):
 
 # ── fetch stories from Apify ──────────────────────────────────────────────────
 def fetch_stories():
-    actor_id = "louisdeconinck/instagram-story-details-scraper"
-    run_url  = f"https://api.apify.com/v2/acts/{actor_id}/runs?token={APIFY_TOKEN}"
+    actor_id = "louisdeconinck~instagram-story-details-scraper"
+    run_url  = f"https://api.apify.com/v2/actors/{actor_id}/runs?token={APIFY_TOKEN}"
 
     print(f"Starting Apify actor for @{CINEMA_ACCOUNT}...")
     run = requests.post(run_url, json={"usernames": [CINEMA_ACCOUNT]}).json()
