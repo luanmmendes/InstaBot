@@ -2,15 +2,17 @@ import instaloader
 import requests
 import os
 import json
+import base64
+import tempfile
 from pathlib import Path
 from datetime import datetime, timezone
 
 # ── credentials from GitHub Secrets ──────────────────────────────────────────
-TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
+TELEGRAM_TOKEN   = os.environ["TELEGRAM_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
-CINEMA_ACCOUNT = os.environ["CINEMA_ACCOUNT"]
-IG_USERNAME = os.environ["IG_USERNAME"]
-IG_PASSWORD = os.environ["IG_PASSWORD"]
+CINEMA_ACCOUNT   = os.environ["CINEMA_ACCOUNT"]
+IG_USERNAME      = os.environ["IG_USERNAME"]
+IG_SESSION       = os.environ["IG_SESSION"]  # base64 encoded session file
 
 # ── file that remembers which stories were already sent ───────────────────────
 SENT_IDS_FILE = "already_sent.json"
@@ -48,7 +50,7 @@ def send_video(video_path, caption=""):
 # ── main logic ────────────────────────────────────────────────────────────────
 def main():
     sent_ids = load_sent_ids()
-    new_ids = set()
+    new_ids  = set()
 
     L = instaloader.Instaloader(
         download_video_thumbnails=False,
@@ -56,12 +58,17 @@ def main():
         post_metadata_txt_pattern=""
     )
 
+    # decode session file from base64 and load it
     try:
-        print(f"Logging in as {IG_USERNAME}...")
-        L.login(IG_USERNAME, IG_PASSWORD)
-        print("Login successful ✅")
+        print("Loading session...")
+        session_dir = Path.home() / ".config" / "instaloader"
+        session_dir.mkdir(parents=True, exist_ok=True)
+        session_file = session_dir / f"session-{IG_USERNAME}"
+        session_file.write_bytes(base64.b64decode(IG_SESSION))
+        L.load_session_from_file(IG_USERNAME, str(session_file))
+        print("Session loaded ✅")
     except Exception as e:
-        print(f"Login failed: {e}")
+        print(f"Failed to load session: {e}")
         return
 
     try:
@@ -72,9 +79,11 @@ def main():
         return
 
     stories = L.get_stories(userids=[profile.userid])
+    found_any = False
 
     for story in stories:
         for item in story.get_items():
+            found_any = True
             story_id = str(item.mediaid)
 
             if story_id in sent_ids:
@@ -106,6 +115,9 @@ def main():
                 new_ids.add(story_id)
             else:
                 print(f"Failed to send story {story_id} ❌")
+
+    if not found_any:
+        print("No active stories found for this account.")
 
     save_sent_ids(sent_ids | new_ids)
     print(f"Done. {len(new_ids)} new stories sent.")
