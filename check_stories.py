@@ -26,7 +26,7 @@ def save_sent_ids(ids):
 
 # ── fetch stories from Apify ──────────────────────────────────────────────────
 def fetch_stories():
-    actor_id = "datavoyantlab/advanced-instagram-stories-scraper"
+    actor_id = "louisdeconinck/instagram-story-details-scraper"
     run_url  = f"https://api.apify.com/v2/acts/{actor_id}/runs?token={APIFY_TOKEN}"
 
     print(f"Starting Apify actor for @{CINEMA_ACCOUNT}...")
